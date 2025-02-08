@@ -8,6 +8,7 @@ use App\Http\Controllers\BlogApiController;
 use App\Http\Controllers\Api\VideoController;
 use App\Http\Controllers\Api\UrlController;
 
+# code push in github
 Route::group(['middleware' => ['throttle:1000,1'], 'as' => 'api.'], function () {
     
     Route::post('user_count', [ApiController::class, 'user_count']);
@@ -19,7 +20,7 @@ Route::group(['middleware' => ['throttle:1000,1'], 'as' => 'api.'], function () 
     Route::post('get_today_prices_city_wise', [ApiController::class, 'get_today_prices_city_wise']);
     Route::post('get_common_setting', [ApiController::class, 'get_common_setting']);
     Route::post('get_privacy', [ApiController::class, 'get_privacy']);
-   
+
     Route::middleware('custome.api')->group( function () {
         Route::post('/vehicle-info', [VehicleController::class, 'getVehicleInfo']);
         Route::post('/challan-info', [VehicleController::class, 'getChallanInfo']);
