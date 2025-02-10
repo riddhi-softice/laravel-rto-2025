@@ -43,15 +43,14 @@
                                 </div>
                             </div>
 
-                            <!-- <div class="row mb-3">
-                                <label for="video_url" class="col-sm-2 col-form-label">Image</label>
-                                <div class="col-sm-10">
-                                    <input class="form-control" type="file" id="video_url" name="video_url">
-                                    @if ($reel['video_url'])
-                                        <img src="{{ asset('public/' .$reel['video_url']) }}" alt="Preview Image" class="mt-2" style="max-width: 150px;max-height: 150px;">
-                                    @endif
+                            <div class="row mb-3">
+                                <label for="is_compress" class="col-sm-2 col-form-label">Is Compress</label>
+                                <div class="col-sm-10 d-flex align-items-center">
+                                    <!-- Checkbox with value 1 -->
+                                    <input type="checkbox" id="is_compress" name="is_compress" value="1" 
+                                        {{ old('is_compress', $reel['is_compress']) ? 'checked' : '' }}>
                                 </div>
-                            </div> -->
+                            </div>
 
                             <div class="row mb-3">
                                 <label for="video_url" class="col-sm-2 col-form-label">Upload Video</label>

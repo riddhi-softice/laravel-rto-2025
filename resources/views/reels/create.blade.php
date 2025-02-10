@@ -40,6 +40,24 @@
                             </div>
 
                             <div class="row mb-3">
+                                <label for="is_compress" class="col-sm-2 col-form-label">Is Compress</label>
+                                <div class="col-sm-10 d-flex align-items-center">
+
+                                    <!-- Checkbox for is_compress (default OFF) -->
+                                    <input type="checkbox" id="is_compress" name="is_compress" value="1"
+                                        {{ old('is_compress', 0) ? 'checked' : '' }}>
+                                </div>
+                            </div>
+
+
+                            <!-- <div class="row mb-3">
+                                <label for="is_compress" class="col-sm-2 col-form-label">Is Compress</label>
+                                <div class="col-sm-10 d-flex align-items-center">
+                                    <input type="checkbox" id="is_compress" name="is_compress">
+                                </div>
+                            </div> -->
+
+                            <div class="row mb-3">
                                 <label for="inputNumber" class="col-sm-2 col-form-label">Reel</label>
                                 <div class="col-sm-10">
                                     <input class="form-control" type="file" id="video_url" name="video_url" accept="video/*" required>
