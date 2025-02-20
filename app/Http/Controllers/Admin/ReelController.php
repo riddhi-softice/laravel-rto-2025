@@ -76,6 +76,23 @@ class ReelController extends Controller
                     ],
                 ]);
 
+                // $uploadedVideo = $cloudinary->uploadApi()->upload(
+                //     $request->file('video_url')->getPathname(),
+                //     [
+                //         'resource_type' => 'video',
+                //         'transformation' => [
+                //             [
+                //                 'quality' => 'auto:best', // Retain the best possible quality
+                //                 'bit_rate' => '800000', // Balanced bitrate for clarity (800 kbps)
+                //                 'fps' => '24', // Standard frame rate
+                //                 // 'width' => '1280', // Adjust resolution to HD (1280x720)
+                //                 // 'height' => '720',
+                //                 'crop' => 'limit', // Ensures the video fits within dimensions without distortion
+                //             ],
+                //         ],
+                //     ]                    
+                // );
+
                 $uploadedVideo = $cloudinary->uploadApi()->upload(
                     $request->file('video_url')->getPathname(),
                     [
