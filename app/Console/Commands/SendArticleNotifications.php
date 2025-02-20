@@ -34,7 +34,6 @@ class SendArticleNotifications extends Command
         if ($articles->isEmpty()) {
             return;
         }
-
         if ($currentTime >= '00:00' && $currentTime < '09:00') {
             $article = $articles[0]; // First article (9 AM)
         } elseif ($currentTime >= '18:00' && $currentTime < '21:00') {
@@ -42,7 +41,6 @@ class SendArticleNotifications extends Command
         } else {
             $article = $articles[2]; // Default case
         }
-
         if (!is_null($article)) {
             $imageUrl = empty($article->image_url) ? asset('img/No-Image-Placeholder.svg') : 'https://apps.videoapps.club/common_news/' . $article->image_url;
 
@@ -54,7 +52,6 @@ class SendArticleNotifications extends Command
             $send_notification = ApplicationNotification::sendOneSignalNotificationSchedule($notificationSendData);
         }
     }
-
 
     /*public function handle()  # ONE SIGNAL NOTIFICATION
     {

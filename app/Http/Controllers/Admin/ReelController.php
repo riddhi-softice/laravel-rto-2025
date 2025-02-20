@@ -18,9 +18,6 @@ class ReelController extends Controller
             $data = Reel::query();
             return DataTables::of($data)
                 ->addIndexColumn()
-                // ->addColumn('created_at', function($row){
-                //     return Carbon::parse($row->created_at)->format('d M Y');
-                // })
                 ->editColumn('created_at', function ($row) {
                     return $row->created_at ? $row->created_at->format('Y-m-d H:i:s') : null; // Ensure correct format
                 })
@@ -31,8 +28,12 @@ class ReelController extends Controller
                     $btn .= '<button data-id="'.$row->id.'" data-toggle="modal" data-target="#confirmDeleteModal" class="btn btn-danger btn-sm deleteData" title="Delete"><i class="bi bi-trash"></i></button>';
                     return $btn;
                 })
-                ->rawColumns(['action'])
-                // ->rawColumns(['action','created_at'])
+                ->addColumn('top_status', function ($row) {
+                    $checked = $row->top_status != 0 ? 'checked' : '';
+                    $checkbox = '<input type="checkbox" class="top-status" data-id="'.$row->id.'" '.$checked.'>';
+                    return $checkbox;
+                })
+                ->rawColumns(['action','top_status'])
                 ->make(true);
         }
         return view('reels.ajaxindex');
@@ -66,7 +67,8 @@ class ReelController extends Controller
         $data = $request->only(['title', 'video_button', 'button_link','is_compress']);
         if ($request->hasFile('video_url')) {
 
-            if($request->is_compress == "on"){
+            // dd($request->is_compress == "1");
+            if($request->is_compress == "1"){
                 // Initialize Cloudinary configuration
                 $cloudinary = new Cloudinary([
                     'cloud' => [
@@ -75,24 +77,6 @@ class ReelController extends Controller
                         'api_secret' => 'hDinCDTiShWi34BdXhuxw0VgMLA',
                     ],
                 ]);
-
-                // $uploadedVideo = $cloudinary->uploadApi()->upload(
-                //     $request->file('video_url')->getPathname(),
-                //     [
-                //         'resource_type' => 'video',
-                //         'transformation' => [
-                //             [
-                //                 'quality' => 'auto:best', // Retain the best possible quality
-                //                 'bit_rate' => '800000', // Balanced bitrate for clarity (800 kbps)
-                //                 'fps' => '24', // Standard frame rate
-                //                 // 'width' => '1280', // Adjust resolution to HD (1280x720)
-                //                 // 'height' => '720',
-                //                 'crop' => 'limit', // Ensures the video fits within dimensions without distortion
-                //             ],
-                //         ],
-                //     ]                    
-                // );
-
                 $uploadedVideo = $cloudinary->uploadApi()->upload(
                     $request->file('video_url')->getPathname(),
                     [
@@ -100,14 +84,14 @@ class ReelController extends Controller
                         'transformation' => [
                             [
                                 'quality' => 'auto:best', // Retain the best possible quality
-                                'bit_rate' => '800000', // Balanced bitrate for clarity (800 kbps)
+                                'bit_rate' => '600000',  // Balanced bitrate for clarity (600 kbps)
                                 'fps' => '24', // Standard frame rate
-                                'width' => '1280', // Adjust resolution to HD (1280x720)
-                                'height' => '720',
+                                // 'width' => '1280', // Adjust resolution to HD (1280x720)
+                                // 'height' => '720',
                                 'crop' => 'limit', // Ensures the video fits within dimensions without distortion
                             ],
                         ],
-                    ]
+                    ]                    
                 );
                 // Get the video URL from Cloudinary response
                 $videoUrl = $uploadedVideo['secure_url'];
@@ -146,7 +130,7 @@ class ReelController extends Controller
             if ($reel->video_url && Storage::exists('public/compressed_videos/' . $reel->video_url)) {
                 Storage::delete('public/compressed_videos/' . $reel->video_url);
             }
-            if($request->is_compress == "on"){
+            if($request->is_compress == "1"){
                 // Initialize Cloudinary configuration
                 $cloudinary = new Cloudinary([
                     'cloud' => [
@@ -159,13 +143,23 @@ class ReelController extends Controller
                     $request->file('video_url')->getPathname(),
                     [
                         'resource_type' => 'video',
+                        // 'transformation' => [
+                        //     [
+                        //         'quality' => 'auto:best', // Retain the best possible quality
+                        //         'bit_rate' => '800000', // Balanced bitrate for clarity (800 kbps)
+                        //         'fps' => '24', // Standard frame rate
+                        //         'width' => '1280', // Adjust resolution to HD (1280x720)
+                        //         'height' => '720',
+                        //         'crop' => 'limit', // Ensures the video fits within dimensions without distortion
+                        //     ],
+                        // ],
                         'transformation' => [
                             [
                                 'quality' => 'auto:best', // Retain the best possible quality
-                                'bit_rate' => '800000', // Balanced bitrate for clarity (800 kbps)
+                                'bit_rate' => '600000',  // Balanced bitrate for clarity (600 kbps)
                                 'fps' => '24', // Standard frame rate
-                                'width' => '1280', // Adjust resolution to HD (1280x720)
-                                'height' => '720',
+                                // 'width' => '1280', // Adjust resolution to HD (1280x720)
+                                // 'height' => '720',
                                 'crop' => 'limit', // Ensures the video fits within dimensions without distortion
                             ],
                         ],
@@ -207,6 +201,25 @@ class ReelController extends Controller
         }
         $reel->delete();
         return redirect()->route('reels.index')->with('success', 'Reel deleted successfully.');
+    }
+
+    public function selectreeltatus(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required',
+            'top_status' => 'required|boolean',
+        ]);
+        $top_status = 0;
+        $last_position = Reel::orderBy('top_status','desc')->value('top_status');
+        if($validated['top_status']) {  # if top status selected
+            $top_status = $last_position + 1;
+        }
+
+        $blog = Reel::findOrFail($validated['id']);
+        $blog->top_status = $top_status;
+        $blog->save();
+
+        return response()->json(['success' => true]);
     }
 
 }

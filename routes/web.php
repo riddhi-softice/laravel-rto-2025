@@ -66,6 +66,7 @@ Route::get('cache_clear', function () {
         Route::resource('app_notification', AppNotificationController::class);
         Route::resource('reels', ReelController::class);
         Route::post('/reels/{id}', [ReelController::class, 'destroy'])->name('reel_destroy');
+        Route::post('/select-reel-status', [ReelController::class, 'selectreeltatus'])->name('reels.selectreeltatus');
 
         Route::resource('tags', TagController::class);
         Route::resource('blogs', BlogController::class);

@@ -18,18 +18,21 @@
         width: 40px; /* Id column */
     }
     .table th:nth-child(2), .table td:nth-child(2) {
-        width: 250px; /* Title column */
+        width:45px; /* Selected column */
     }
     .table th:nth-child(3), .table td:nth-child(3) {
-        width: 100px; /* Button column */
+        width: 250px; /* Title column */
     }
     .table th:nth-child(4), .table td:nth-child(4) {
-        width: 450px; /* Button Link column */
+        width: 100px; /* Button column */
     }
     .table th:nth-child(5), .table td:nth-child(5) {
-        width: 60px; /* Date column */
+        width: 450px; /* Button Link column */
     }
     .table th:nth-child(6), .table td:nth-child(6) {
+        width: 60px; /* Date column */
+    }
+    .table th:nth-child(7), .table td:nth-child(7) {
         width: 100px; /* Action column */
     }
 </style>
@@ -66,6 +69,7 @@
                             <thead>
                                 <tr>
                                     <th>Id</th>
+                                    <th>Select</th>
                                     <th>Title</th>
                                     <th>Button</th>
                                     <th>Button Link</th>
@@ -141,6 +145,7 @@
             order : [],
             columns: [
                 { data: 'DT_RowIndex', orderable: false, searchable: false },
+                {data: 'top_status', name: 'top_status'},
                 { data: 'title', name: 'title', orderable: true },        
                 { data: 'video_button', name: 'video_button', orderable: true },
                 { data: 'button_link', name: 'button_link', orderable: true },
@@ -179,5 +184,51 @@
         $(document).on('click', '.btn-close', function() {
             $('#videoModal').modal('hide'); 
         });
+
+        $(document).on('change', '.top-status', function () {
+            const id = $(this).data('id');
+            const topStatus = $(this).is(':checked') ? 1 : 0;
+
+            $.ajax({
+                url: "{{ route('reels.selectreeltatus') }}",
+                type: 'POST',
+                data: {
+                    id: id,
+                    top_status: topStatus,
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                },
+                success: function (response) {
+                    let message = '';
+                    let alertType = '';
+                    if (response.success) {
+                        message = 'Status updated successfully.';
+                        alertType = 'alert-success'; 
+                    } else {
+                        message = 'Failed to update Status.';
+                        alertType = 'alert-danger'; 
+                    }
+                    const alertHtml = `
+                        <div class="alert ${alertType} alert-dismissible fade show" role="alert">
+                            ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
+                    $('#alertContainer').html(alertHtml);
+                    setTimeout(function() {
+                        $('#alertContainer').html('');
+                    }, 3000);
+                },
+                error: function () {
+                    const errorMessage = `
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            An error occurred while updating the Top Status. Please try again.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
+                    $('#alertContainer').html(errorMessage);
+                }
+            });
+        });
+
     });
 </script>
