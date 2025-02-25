@@ -59,6 +59,8 @@ Route::get('cache_clear', function () {
 
         Route::get('url_track', [UrlConfigController::class, 'url_track_index'])->name('url_track.index');
         Route::get('url_track/filter', [UrlConfigController::class, 'url_track_ajax'])->name('url_track.filter');
+        Route::get('url_brand_track/{id}', [UrlConfigController::class, 'url_brand_track'])->name('url_brand_track');
+        Route::get('url_brand_wise_track', [UrlConfigController::class, 'url_brand_wise_track_ajax'])->name('url_brand_track.detail');
 
         // Route::get('/url_track/details/{id}', [UrlConfigController::class, 'track_details'])->name('url_track.details');
         // Route::get('/url_key_track/details/{url_brand_id}/{key}', [UrlConfigController::class, 'key_track_ajax'])->name('url_key_track.details');

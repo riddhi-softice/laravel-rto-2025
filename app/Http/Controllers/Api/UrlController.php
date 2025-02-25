@@ -33,17 +33,29 @@ class UrlController extends BaseController
         $query_params = $request->all();
         unset($query_params['url_type']);
 
-        foreach ($query_params as $key => $value) { 
-            if(!empty($value)){
-                DB::table('url_logs')->insert([
-                    'url_brand_id' => $url_brand_id,
-                    'url_id' => $url_data->id,
-                    'params_key' => $key,
-                    'param_value' => $value,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+       $user_unique = time().'_'.rand(10000, 99999);  
+        if(count($query_params) > 0){
+            foreach ($query_params as $key => $value) { 
+                if(!empty($value)){
+                    DB::table('url_logs')->insert([
+                        'url_brand_id' => $url_brand_id,
+                        'url_id' => $url_data->id,
+                        'params_key' => $key,
+                        'param_value' => $value,
+                         'url_counter' => $user_unique,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
+        }else {
+             DB::table('url_logs')->insert([
+                        'url_brand_id' => $url_brand_id,
+                        'url_id' => $url_data->id,
+                         'url_counter' => $user_unique,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
         }
 
         if (stripos($url_type, "icici") !== false || stripos($url_type, "lombard") !== false) {

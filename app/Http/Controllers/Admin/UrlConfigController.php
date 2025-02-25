@@ -13,6 +13,104 @@ use Carbon\Carbon;
 
 class UrlConfigController extends Controller
 {
+    
+    public function url_brand_track(Request $request,$id)
+    {
+        $brand_name = UrlBrand::where('id', $id)->pluck('name')->first();
+        $all_keys = DB::table('url_logs')->where('url_brand_id', $id)->whereNotNull('url_counter')->select('params_key')->distinct()->pluck('params_key');
+        return view('url_brand.url_brand_track',compact('id','all_keys','brand_name'));
+    }
+
+    public function url_brand_wise_track_ajax(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = DB::table('url_logs')
+                ->select('url_logs.*', 'url_brands.name as brand_name')
+                ->leftJoin('url_brands', 'url_logs.url_brand_id', '=', 'url_brands.id');
+            $query->where('url_logs.url_brand_id', $request->brand_id)->whereNotNull('url_counter');
+
+            if ($request->filled('params_key')) {
+                if ($request->params_key == "no_key") {
+                    $query->whereNull('url_logs.params_key')->orWhere('url_logs.params_key','');  // null or empty key data
+                }else{
+                    $query->where('url_logs.params_key', $request->params_key);
+                }
+            }
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $query->whereBetween('url_logs.created_at', [
+                    $request->start_date . ' 00:00:00', 
+                    $request->end_date . ' 23:59:59'
+                ]);
+            } elseif ($request->filled('start_date')) {
+                $query->whereDate('url_logs.created_at', $request->start_date);
+            } elseif ($request->filled('end_date')) {
+                $query->whereDate('url_logs.created_at', '<=', $request->end_date);
+            }
+            $query->orderBy('url_logs.created_at', 'desc');
+            $data = $query->get();
+            return DataTables::of($data)
+                ->addIndexColumn() 
+                ->editColumn('params_key', function($row){
+                    return $row->params_key == null ? "No Key" : $row->params_key;
+                })
+                ->editColumn('param_value', function($row){
+                    return $row->param_value == null ? "No Value" : $row->param_value;
+                })
+                ->addColumn('created_at', function($row){
+                    return Carbon::parse($row->created_at)->format('d M Y');
+                })
+                ->rawColumns(['created_at'])
+                ->make(true); 
+        }
+        return view('url_brand.url_brand_track');
+    }
+
+    public function url_track_ajax(Request $request)  // new table wise working
+    {
+        // dd($request->has('url_brand_id') && !empty($request->url_brand_id));
+        if ($request->ajax()) {
+            $query = DB::table('url_logs as ul')
+            ->select(
+                'ul.url_brand_id',
+                'url_brands.name as brand_name',
+                DB::raw('COUNT(DISTINCT ul.url_counter) as url_counter'), // Unique count of url_counter per brand
+                DB::raw('MAX(ul.created_at) as latest_created_at') // Latest entry per brand
+            )
+            ->leftJoin('url_brands', 'ul.url_brand_id', '=', 'url_brands.id');
+
+            if ($request->has('url_brand_id') && !empty($request->url_brand_id)) {
+                $query->where('ul.url_brand_id', $request->url_brand_id);
+            }
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                // $query->whereBetween('ul.created_at', [$request->start_date, $request->end_date]);
+                $query->whereBetween('ul.created_at', [
+                    $request->start_date . ' 00:00:00', 
+                    $request->end_date . ' 23:59:59'
+                ]);
+            } elseif ($request->filled('start_date')) {
+                $query->whereDate('ul.created_at', $request->start_date);
+                // $query->whereDate('ul.created_at', '>=', $request->start_date);
+            } elseif ($request->filled('end_date')) {
+                $query->whereDate('ul.created_at', '<=', $request->end_date);
+            }
+            $query->groupBy('ul.url_brand_id', 'url_brands.name')->orderBy('latest_created_at', 'desc'); // Sort by most recent entry
+            $data = $query->get();
+
+            return DataTables::of($data)
+                ->addIndexColumn() 
+                ->addColumn('brand_name', function($row){
+                    return $row->brand_name;
+                })
+                ->addColumn('action', function($row){
+                    $btn = '<a href="'.route('url_brand_track', $row->url_brand_id).'" class="btn btn-sm btn-warning">Detail</a> &nbsp;';
+                    return $btn;
+                })
+                ->rawColumns(['brand_name','action'])
+                ->make(true); 
+        }
+        return view('url_brand.url_track_index');
+    }
+
     public function url_track_index(Request $request)
     {
         $brands = UrlBrand::all(); 
@@ -20,48 +118,6 @@ class UrlConfigController extends Controller
         return view('url_brand.url_track_index', compact('brands','all_keys'));
     }
 
-    public function url_track_ajax(Request $request)
-    {
-        // dd($request->has('url_brand_id') && !empty($request->url_brand_id));
-        if ($request->ajax()) {
-            $query = DB::table('url_logs')
-                ->select('url_logs.*', 'url_brands.name as brand_name')
-                ->leftJoin('url_brands', 'url_logs.url_brand_id', '=', 'url_brands.id');
-
-            if ($request->has('url_brand_id') && !empty($request->url_brand_id)) {
-                $query->where('url_logs.url_brand_id', $request->url_brand_id);
-            }
-            if ($request->filled('params_key')) {
-                $query->where('url_logs.params_key', $request->params_key);
-            }
-            if ($request->filled('start_date') && $request->filled('end_date')) {
-                // $query->whereBetween('url_logs.created_at', [$request->start_date, $request->end_date]);
-                $query->whereBetween('url_logs.created_at', [
-                    $request->start_date . ' 00:00:00', 
-                    $request->end_date . ' 23:59:59'
-                ]);
-            } elseif ($request->filled('start_date')) {
-                $query->whereDate('url_logs.created_at', $request->start_date);
-                // $query->whereDate('url_logs.created_at', '>=', $request->start_date);
-            } elseif ($request->filled('end_date')) {
-                $query->whereDate('url_logs.created_at', '<=', $request->end_date);
-            }
-
-            $data = $query->get();
-            return DataTables::of($data)
-                ->addIndexColumn() 
-                ->addColumn('brand_name', function($row){
-                    return $row->brand_name;
-                })
-                ->addColumn('created_at', function($row){
-                    return Carbon::parse($row->created_at)->format('d M Y');
-                })
-                ->rawColumns(['created_at','brand_name'])
-                ->make(true); 
-        }
-        return view('url_brand.url_track_index');
-    }
-    
     public function track_details($id)
     {
         $keyCounts = [];
@@ -313,5 +369,50 @@ class UrlConfigController extends Controller
         return response()->json(['message' => 'Data deleted successfully'], 200);
     }
 
+    public function url_track_ajax_old(Request $request)
+    {
+        // dd($request->has('url_brand_id') && !empty($request->url_brand_id));
+        if ($request->ajax()) {
+            $query = DB::table('url_logs')
+                ->select('url_logs.*', 'url_brands.name as brand_name')
+                ->leftJoin('url_brands', 'url_logs.url_brand_id', '=', 'url_brands.id');
+
+            if ($request->has('url_brand_id') && !empty($request->url_brand_id)) {
+                $query->where('url_logs.url_brand_id', $request->url_brand_id);
+            }
+            if ($request->filled('params_key')) {
+                $query->where('url_logs.params_key', $request->params_key);
+            }
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                // $query->whereBetween('url_logs.created_at', [$request->start_date, $request->end_date]);
+                $query->whereBetween('url_logs.created_at', [
+                    $request->start_date . ' 00:00:00', 
+                    $request->end_date . ' 23:59:59'
+                ]);
+            } elseif ($request->filled('start_date')) {
+                $query->whereDate('url_logs.created_at', $request->start_date);
+                // $query->whereDate('url_logs.created_at', '>=', $request->start_date);
+            } elseif ($request->filled('end_date')) {
+                $query->whereDate('url_logs.created_at', '<=', $request->end_date);
+            }
+            $query->whereNotNull('url_logs.url_counter')
+                ->whereRaw('url_logs.id IN (SELECT MAX(id) FROM url_logs GROUP BY url_counter)');
+    
+            $query->orderBy('url_logs.created_at', 'desc');
+            $data = $query->get();
+            return DataTables::of($data)
+                ->addIndexColumn() 
+                ->addColumn('brand_name', function($row){
+                    return $row->brand_name;
+                })
+                ->addColumn('created_at', function($row){
+                    return Carbon::parse($row->created_at)->format('d M Y');
+                })
+                ->rawColumns(['created_at','brand_name'])
+                ->make(true); 
+        }
+        return view('url_brand.url_track_index');
+    }
+    
 }
 

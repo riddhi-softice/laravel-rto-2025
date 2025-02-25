@@ -36,7 +36,7 @@ class AuthController extends Controller
     {
         if (Session::has('admin_name') && !empty(session('admin_name'))) 
         {
-            $type_array = DB::table('url_logs')
+            /*$type_array = DB::table('url_logs')
             ->select(
                 'url_logs.url_brand_id',
                 'url_brands.name',
@@ -44,9 +44,11 @@ class AuthController extends Controller
             )
             ->join('url_brands', 'url_logs.url_brand_id', '=', 'url_brands.id')
             ->groupBy('url_logs.url_brand_id', 'url_brands.name')
-            ->get();
+            ->get();*/
+            // $data['type_array'] = $type_array;
+
+            $data = DB::table('url_logs')->whereNotNull('url_counter')->distinct('url_counter')->count();
             
-            $data['type_array'] = $type_array;
             return view('dashboard',['data' => $data]);
         }
         return redirect('/login')->with('error', 'Opps! You do not have access.');
