@@ -47,6 +47,8 @@ class AuthController extends Controller
             ->get();*/
             // $data['type_array'] = $type_array;
 
+            // SELECT ul.url_brand_id, url_brands.name AS brand_name, COUNT(DISTINCT ul.url_counter) AS url_counter, MAX(ul.created_at) AS latest_created_at FROM url_logs AS ul LEFT JOIN url_brands ON ul.url_brand_id = url_brands.id GROUP BY ul.url_brand_id, url_brands.name ORDER BY latest_created_at DESC;
+
             $data = DB::table('url_logs')->whereNotNull('url_counter')->distinct('url_counter')->count();
             
             return view('dashboard',['data' => $data]);

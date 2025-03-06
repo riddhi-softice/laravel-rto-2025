@@ -47,9 +47,29 @@ class BaseController extends Controller
         return $sec_response;
     }
 
+    public function encryptData_new($response)
+    {
+        $key = openssl_random_pseudo_bytes(32); // 256-bit key
+        $iv = openssl_random_pseudo_bytes(16);  // 128-bit IV
+        $dataString = json_encode($response);
+        $encrypted = openssl_encrypt($dataString, 'AES-256-CBC', $key, 0, $iv);
+
+        $data['key'] = $key;
+        $data['data'] = base64_encode($iv . $encrypted);
+        return $data;
+    }
+    
+    public function decryptData($encryptedData, $key)
+    {
+        $encryptedData = base64_decode($encryptedData);
+        $iv = substr($encryptedData, 0, 16);
+        $encrypted = substr($encryptedData, 16);
+
+        return json_decode(openssl_decrypt($encrypted, 'AES-256-CBC', $key, 0, $iv), true);
+    }
+
     public function generateRandomToken($tokenLength = 32)
     {
         return bin2hex(random_bytes($tokenLength));
     }
-
 }

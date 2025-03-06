@@ -15,6 +15,7 @@
             <div class="col-lg-12">
                 <div class="row">
 
+                <a href="{{ route('url_track.index') }}" class="text-decoration-none">
                     <div class="col-xxl-2 col-md-6">
                         <div class="card info-card sales-card">
                             <div class="card-body">
@@ -31,6 +32,7 @@
                             </div>
                         </div>
                     </div>
+                </a>
 
                 </div>
             </div>

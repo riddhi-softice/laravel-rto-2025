@@ -13,17 +13,33 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Cache;
 use App\Models\IPO;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\EncryptionHelper;
 
 class ApiController extends BaseController
 {
     public function noti_test()
     {
         $notificationSendData = [
-                'notification_title' => "hello",
-                'notification_description' => "Test1",
-                'notification_image' => "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg",
-            ];
-            $send_notification = ApplicationNotification::sendOneSignalNotificationSchedule($notificationSendData);
+            'notification_title' => "hello",
+            'notification_description' => "Test1",
+            'notification_image' => "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg",
+        ];
+        // Generate AES key/IV
+        $keyIv = EncryptionHelper::generateKeyIv();
+        // Encrypt the payload using AES
+        $encryptedPayload = EncryptionHelper::encryptPayload(json_encode($notificationSendData), $keyIv);
+        $payloadEncoded = EncryptionHelper::replaceSpecialChars($encryptedPayload);
+        // Encrypt AES Key/IV using RSA
+        $encryptedKeyIv = EncryptionHelper::encryptAesKeyIv($keyIv);
+        $keyEncoded = EncryptionHelper::replaceSpecialChars($encryptedKeyIv);
+        // Generate final URL
+        $data['data'] = $payloadEncoded;
+        $data['key'] =  $keyEncoded;
+
+        // $response = $this->encryptData_new($notificationSendData);
+        return $this->sendResponse($data, 'Data get Successfully!');
+
+        $send_notification = ApplicationNotification::sendOneSignalNotificationSchedule($notificationSendData);
     }
     
     public function getIPOList(Request $request)
