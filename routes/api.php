@@ -8,7 +8,6 @@ use App\Http\Controllers\BlogApiController;
 use App\Http\Controllers\Api\VideoController;
 use App\Http\Controllers\Api\UrlController;
 
-# code push in github
 Route::group(['middleware' => ['throttle:1000,1'], 'as' => 'api.'], function () {
     
     Route::post('user_count', [ApiController::class, 'user_count']);
@@ -32,6 +31,10 @@ Route::group(['middleware' => ['throttle:1000,1'], 'as' => 'api.'], function () 
     Route::post('blog_category_list', [BlogApiController::class, 'blog_category_list']);
     Route::post('blog_list', [BlogApiController::class, 'blog_list']);
     Route::post('blog_details', [BlogApiController::class, 'blog_details']);
+
+    
+    Route::post('manage_garage_info', [BlogApiController::class, 'manage_garage_info']);
+
 
     Route::post('get_video', [VideoController::class, 'get_video']);
     Route::post('get_home_video', [VideoController::class, 'get_home_video']);

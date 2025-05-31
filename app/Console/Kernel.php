@@ -64,7 +64,7 @@ class Kernel extends ConsoleKernel
         
         
         // Define the notifications
-         $notifications = [
+        $notifications = [
             [
                 'title' => 'Quick DL Access! 🪪',
                 'description' => '📥 Your Driving License is just a click away. Download it anytime, anywhere!'
